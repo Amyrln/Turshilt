@@ -2003,7 +2003,7 @@ body{top:0!important}
 "use strict";
 const IMG=["sky","mountains","ground","fggrass","gerx","tree","rack","interior","sheep_body","sheep_down","sheep_up","goat_body","goat_down","goat_up","food_tea","food_borts",
   "gp_toono","gp_uni","gp_bagana","gp_khana","gp_floor","gp_felt","gp_rope1","gp_rope2"];
-const IM={};let loading=null,BASE="ch1/";
+const IM={};let loading=null,BASE="../Khaldun/ch1/";
 function preload(base){if(base)BASE=base;if(loading)return loading;
   loading=Promise.all(IMG.map(n=>new Promise((ok,no)=>{const i=new Image();i.decoding="async";i.onload=()=>ok(IM[n]=i);i.onerror=()=>no(n);i.src=BASE+n+".webp";})));
   loading.catch(()=>{loading=null;});return loading;}
@@ -6382,7 +6382,7 @@ function w3Rebuf(W,m,geo){const gl=W.gl;gl.bindBuffer(gl.ARRAY_BUFFER,m.b);gl.bu
    Triangles are merged per material and stored as pos,normal,colour,sway,uv (48 bytes) so the world's own shader draws them. */
 let W3GLB=null;
 function w3GerData(){if(W3GLB)return W3GLB;
-  W3GLB=(async()=>{const r=await fetch("ch1/ger_lite.json");if(!r.ok)throw new Error("ger "+r.status);const J=await r.json();
+  W3GLB=(async()=>{const r=await fetch("../Khaldun/ch1/ger_lite.json");if(!r.ok)throw new Error("ger "+r.status);const J=await r.json();
     const u=J.buffers[0].uri,s=atob(u.slice(u.indexOf(",")+1)),u8=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u8[i]=s.charCodeAt(i);const bin=u8.buffer;
     const acc=i=>{const a=J.accessors[i],bv=J.bufferViews[a.bufferView],nc={SCALAR:1,VEC2:2,VEC3:3,VEC4:4}[a.type],T={5126:Float32Array,5125:Uint32Array,5123:Uint16Array,5121:Uint8Array}[a.componentType],
       bs=T.BYTES_PER_ELEMENT,off=(bv.byteOffset||0)+(a.byteOffset||0),st=bv.byteStride||nc*bs;let d;
@@ -6410,7 +6410,7 @@ function w3GerData(){if(W3GLB)return W3GLB;
     const mats=(J.materials||[]).map(m=>{const p=m.pbrMetallicRoughness||{},em=m.emissiveTexture?texImg(m.emissiveTexture.index):null,base=p.baseColorTexture?texImg(p.baseColorTexture.index):null;
       const f=(p.baseColorFactor||[1,1,1,1]).slice(0,3);return {uri:em||base,f,emit:!!em};});
     mats.push({uri:null,f:[.8,.8,.8],emit:false});
-    await Promise.all(mats.map(m=>m.uri?new Promise(ok=>{const im=new Image();im.decoding="async";im.onload=()=>{m.img=im;ok();};im.onerror=()=>ok();im.src="ch1/"+m.uri;}):null));
+    await Promise.all(mats.map(m=>m.uri?new Promise(ok=>{const im=new Image();im.decoding="async";im.onload=()=>{m.img=im;ok();};im.onerror=()=>ok();im.src="../Khaldun/ch1/"+m.uri;}):null));
     const pack=set=>[...sets[set].values()].map(B=>({mat:B.mat<0?mats.length-1:B.mat,cast:B.cast,inner:B.inner,v:new Float32Array(B.a),n:B.a.length/12}));
     return {main:pack("main"),ext:pack("ext"),mats};})();
   W3GLB.catch(()=>{W3GLB=null;});return W3GLB;}
@@ -6436,7 +6436,7 @@ function w3GerAttach(W,P){w3GerData().then(D=>{const gl=W.gl;if(!gl||(gl.isConte
 const W3INFO={gpu:"",horse:"—",sheep:"—",q:null,ms:0},HX={s:1.15,walk:.81,gallop:3.39},SHX={s:1.02,walk:.5},W3SKD={};
 function w3HorseData(){return w3SkinData("horse_bs");}
 function w3SkinData(nm){if(W3SKD[nm])return W3SKD[nm];
-  const pr=(async()=>{const r=await fetch("ch1/"+nm+".json");if(!r.ok)throw new Error(nm+" "+r.status);const J=await r.json();
+  const pr=(async()=>{const r=await fetch("../Khaldun/ch1/"+nm+".json");if(!r.ok)throw new Error(nm+" "+r.status);const J=await r.json();
     const s=atob(J.buf),u8=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u8[i]=s.charCodeAt(i);const bin=u8.buffer;delete J.buf;
     const N=J.nodes.length;J.N=N;J.ibm=new Float32Array(bin,J.ibm,(N-1)*16);J.base=new Float32Array(J.base);
     const dq={};J.prims.forEach(p=>{p.F=p.pq==null?new Float32Array(bin,p.fv,p.nv*8):dq[p.pq]||(dq[p.pq]=hxDeq(bin,p));p.Bt=new Uint8Array(bin,p.bv,p.nv*8);p.I=new Uint16Array(bin,p.ix,p.ni);});
@@ -6445,7 +6445,7 @@ function w3SkinData(nm){if(W3SKD[nm])return W3SKD[nm];
     J.rest=new Float32Array(N*10);J.nodes.forEach((n,i)=>J.rest.set([...n.t,...n.r,...n.s],i*10));
     J.L=new Float32Array(N*10);J.P=new Float32Array(N*10);J.Wm=new Float32Array(N*16);J.tm=new Float32Array(16);
     await Promise.all(J.mats.flatMap(m=>[["map","img"],["nrm","nimg"]].map(([k,o])=>m[k]?(W3IMG[m[k]]||(W3IMG[m[k]]=new Promise(ok=>{const im=new Image();im.decoding="async";
-      im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src="ch1/"+m[k];}))).then(im=>{if(im)m[o]=im;}):null)));
+      im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src="../Khaldun/ch1/"+m[k];}))).then(im=>{if(im)m[o]=im;}):null)));
     return J;})();
   W3SKD[nm]=pr;pr.catch(()=>{delete W3SKD[nm];});return pr;}
 const W3IMG={};
@@ -6614,7 +6614,7 @@ void main(){vec3 V=normalize(vW-uCam);float el=V.y;vec3 c;float a;
  else{a=texture2D(uA,vU).r*.8;c=mix(uFog,uHor,.35)*uCol*1.08;}
  c=mix(c,uHor,(1.-smoothstep(.01,.22,el))*.35*float(uMode<1.5));gl_FragColor=vec4(c*uExp,a);}`;
 function w3SkyAttach(W){if(W.sky||!W.gl)return;W.sky=1;W3INFO.sky="ачаалж байна";
-  fetch("ch1/sky.json").then(r=>{if(!r.ok)throw new Error("http "+r.status);return r.json();}).then(D=>Promise.all(["a","n","c"].map(k=>new Promise(ok=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src="ch1/"+D.mat.tex[k];}))).then(ims=>{
+  fetch("../Khaldun/ch1/sky.json").then(r=>{if(!r.ok)throw new Error("http "+r.status);return r.json();}).then(D=>Promise.all(["a","n","c"].map(k=>new Promise(ok=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>ok(null);im.src="../Khaldun/ch1/"+D.mat.tex[k];}))).then(ims=>{
     const gl=W.gl;if(!gl||(gl.isContextLost&&gl.isContextLost()))return;if(ims.some(i=>!i))throw new Error("tex");
     const L=W.prog(W3CVS,W3CFS,["aP","aN","aU"],["uVP","uM","uA","uNm","uL","uSunC","uZen","uHor","uFog","uCam","uCol","uNight","uGlow","uExp","uMode","uK"]);if(!L||!L.p)throw new Error("shader");
     const u8=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)).buffer,buf=(t,d)=>{const b=gl.createBuffer();gl.bindBuffer(t,b);gl.bufferData(t,d,gl.STATIC_DRAW);return b;},
@@ -6699,12 +6699,12 @@ function w3LandAttach(W){const gl=W.gl;if(!gl||W.land)return;const L=LAND,st=.3,
   const im=new Image();im.decoding="async";im.onload=()=>{if(gl.isContextLost&&gl.isContextLost())return;const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
     gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,im);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-    if(W.aniso)gl.texParameterf(gl.TEXTURE_2D,W.aniso.TEXTURE_MAX_ANISOTROPY_EXT,8);m.map=t;m.on=!!m.det;};im.src="ch1/land.webp";
+    if(W.aniso)gl.texParameterf(gl.TEXTURE_2D,W.aniso.TEXTURE_MAX_ANISOTROPY_EXT,8);m.map=t;m.on=!!m.det;};im.src="../Khaldun/ch1/land.webp";
   /* Amy's idea: a clean 3 m patch of the same earth, made seamless and shown 4x smaller, repeated for the fine grain up close */
   const di=new Image();di.onload=()=>{if(gl.isContextLost&&gl.isContextLost())return;const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
     gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,gl.LUMINANCE,gl.UNSIGNED_BYTE,di);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);if(W.aniso)gl.texParameterf(gl.TEXTURE_2D,W.aniso.TEXTURE_MAX_ANISOTROPY_EXT,8);m.det=t;if(m.map)m.on=true;};
-  di.onerror=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([140]));m.det=t;if(m.map)m.on=true;};di.src="ch1/land_detail.png";}
+  di.onerror=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.LUMINANCE,1,1,0,gl.LUMINANCE,gl.UNSIGNED_BYTE,new Uint8Array([140]));m.det=t;if(m.map)m.on=true;};di.src="../Khaldun/ch1/land_detail.png";}
 function w3InfoLine(){const I=W3INFO,q=I.q,c=v=>String(v).replace(/[<>&"]/g,"");return `<p class="small muted" style="font-size:12px;margin:8px 0 0">3D мэдээлэл: ${c(I.gpu||"3D нээгээгүй")} · морь: ${c(I.horse)} · хонь: ${c(I.sheep)}${I.trees?` · мод: ${c(I.trees)}`:""}${I.sky?` · тэнгэр: ${c(I.sky)}`:""}${q?` · нарийвчлал ${q.dpr}, өвс ${q.grass}${q.shadows?"":", сүүдэргүй"}${I.ms?`, ${Math.round(I.ms)} мс`:""}`:""}</p><details class="small muted" style="font-size:11px;margin:6px 0 0;opacity:.85"><summary>3D загваруудын эх сурвалж</summary><p style="margin:4px 0">• «Realistic Woolly Sheep - Thick Curled Fleece» — Pigcraft, Sketchfab · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>. Өөрчилсөн: хэмжээ, хөдөлгөөнийг тоглоомд тааруулж, зарим хонины өнгийг өөрчилсөн.</p><p style="margin:4px 0">• «<a href="https://sketchfab.com/3d-models/forest-landscape-2aeb815bbdd44824a5667cde77e7ca9c" target="_blank" rel="noopener">Forest landscape</a>» — <a href="https://sketchfab.com/thesidekick" target="_blank" rel="noopener">Lassi Kaukonen</a>, Sketchfab · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>. Өөрчилсөн: эрэг, хожуулыг авч, налууг тэгшилж, гэрийн орчны газрын зураг болгосон.</p><p style="margin:4px 0">• «<a href="https://sketchfab.com/3d-models/grass-f2f2bddb2728483a9105c5f5114eb15e" target="_blank" rel="noopener">Grass</a>» — <a href="https://sketchfab.com/Cosmic_dust" target="_blank" rel="noopener">Cosmic_dust</a>, Sketchfab · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>. Өөрчилсөн: навчны зургуудыг тоглоомын өвсний ширхэгт ашигласан.</p></details>`;}
 function w3World(baked){
   const C=W3C;
@@ -6969,7 +6969,7 @@ function w3Create(cv){let gl=null;try{gl=cv.getContext("webgl",{antialias:true,a
     /* Amy's grass ("Grass" by Cosmic_dust, CC BY 4.0): each blade wears one of four photographed leaves; until they load the plain blades stay */
     const gi=new Image();gi.onload=()=>{if(!W.gr||(gl.isContextLost&&gl.isContextLost()))return;const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,gi);
       gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);W.gr.tex=t;};gi.src="ch1/grass_blades.webp";}catch(e){W.gr=null;}}
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);W.gr.tex=t;};gi.src="../Khaldun/ch1/grass_blades.webp";}catch(e){W.gr=null;}}
   try{const d=gl.getExtension("WEBGL_debug_renderer_info");W3INFO.gpu=String(d?gl.getParameter(d.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER)).slice(0,40);}catch(e){}W3INFO.q=W.q;
   W.aniso=gl.getExtension("EXT_texture_filter_anisotropic")||gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic");
   gl.enable(gl.DEPTH_TEST);return W;}
@@ -7132,7 +7132,7 @@ function nutagCard(){const best=storyBest(),ok=best>=NUTAG_NEED,cur=Math.min(bes
    <button type="button" class="nt-go" data-nutag ${ok?"":"disabled"}>
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ok?`<path d="M3 12.5L12 6l9 6.5"/><path d="M5 11.5V19h14v-7.5"/><path d="M10 19v-4.5h4V19"/><path d="M11 6V4h2v2"/>`:`<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>`}</svg>
      <span><b>${ok?"Нутагтаа очих":"Түгжээтэй"}</b><small>${ok?"3D тоглоом нээгдлээ!":`Гал ${NUTAG_NEED} хоног дараалан асаахад нээгдэнэ`}</small></span></button></div></div>`;}
-function nutagOpen(){if(storyBest()<NUTAG_NEED)return;try{localStorage.setItem("jalair.nutag.ok","1");}catch(e){}location.href="nutag/index.html#jalair";}
+function nutagOpen(){if(storyBest()<NUTAG_NEED)return;try{localStorage.setItem("jalair.nutag.ok","1");}catch(e){}location.href="../Khaldun/nutag/index.html#jalair";}
 /* ---------- Хөвөгч дүр (Messenger-ийн Meta AI шиг): дэлгэцийн буланд үргэлж байна ----------
    Хэрэглэгчийн өөрийн дүр (myCh, өгсөн нэрээр). Хуруугаараа чирч байршлыг өөрчилнө, ойрын захад наалдана.
    Дарахад тухайн хуудсанд тохирох эелдэг үг хэлнэ. Хуудас солигдоход нэг удаа өөрөө хэлнэ.
@@ -7225,7 +7225,7 @@ function kbMenu(){if(!KB.el)return;const b=KB.el.querySelector(".kb-bub"),q=kbQu
     kbSay({t:q?"Би дахин ярьдаг боллоо!":"За, би өөрөө ярихгүй. Дарвал л ярина."},3500);});}
 /* first entry: chapter 1 starts on its own once the opening animation has gone */
 /* chapter 1 opens by itself once: in 2D for a registered teen who has not seen it yet, in the old 3D world in the «Турших» demo */
-function storyAuto(){if(storySeen(1)||S3)return;if(!ST.demo&&window.__jalair2d)window.__jalair2d.preload("ch1/");const t0=Date.now();const tryOpen=()=>{if(S3||storySeen(1)||current!=="today"||!ST.unlocked)return;
+function storyAuto(){if(storySeen(1)||S3)return;if(!ST.demo&&window.__jalair2d)window.__jalair2d.preload("../Khaldun/ch1/");const t0=Date.now();const tryOpen=()=>{if(S3||storySeen(1)||current!=="today"||!ST.unlocked)return;
   if(document.querySelector(".splash,.flame-ov")){if(Date.now()-t0<120000)setTimeout(tryOpen,300);return;}storyOpen(1,"auto");};setTimeout(tryOpen,120);}
 
 let S3=null;
@@ -7271,7 +7271,7 @@ function w3PreTake(el){const old=$(".s3-cv",el);if(!W3PRE.cv||!old)return null;W
 function story2d(ch){const g=myCh(),hs=ch.helpers.filter(h=>h!==g);while(hs.length<2)hs.push(CH10.find(c=>c.id!==g&&!hs.includes(c.id)).id);
   const P=id=>{const sh=CH_SHAPE[id];return {id,name:s3Name(id),c:CH_BY[id].c,d:sh.d,face:sh.face,fs:sh.faceS||.7,pitch:(BAB[id]&&BAB[id].f)||560,curl:id==="soniuch",rays:id==="bayar"};};
   const nx=STORY.find(c=>c.n===ch.n+1);
-  const ok=window.__jalair2d.open({n:ch.n,title:ch.title,lessons:ch.lessons,cta:ch.cta,base:"ch1/",g:P(g),h:P(hs[0]),h2:P(hs[1]),
+  const ok=window.__jalair2d.open({n:ch.n,title:ch.title,lessons:ch.lessons,cta:ch.cta,base:"../Khaldun/ch1/",g:P(g),h:P(hs[0]),h2:P(hs[1]),
     nextNote:nx?(storyOpenable(nx)?`Дараагийн бүлэг «${nx.title}» нээлттэй байна.`:`Дараагийн бүлэг гал ${nx.need} хоног болоход нээгдэнэ.`):"",
     sound:SFX.on,setSound:on=>{try{sfxSet(on);}catch(e){}},
     onClose:h=>{document.body.classList.remove("noscroll");if(current==="today")renderToday();if(h)go(h);}});
